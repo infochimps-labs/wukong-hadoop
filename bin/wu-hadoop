@@ -3,15 +3,19 @@ $:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'wukong-hadoop'
 settings = Wukong::Hadoop::Configuration.use(:commandline)
-settings.define :map_command,    description: "Shell command to run as mapper, in place of this wukong script",  :wukong => true
-settings.define :reduce_command, description: "Shell command to run as reducer, in place of this wukong script", :wukong => true
-settings.define :dry_run,        description: "Echo the command that will be run, but don't run it",             :wukong => true
-settings.define :rm,             description: "Recursively remove the destination directory.",                   :wukong => true
-settings.define :input,          description: "Comma-separated list of input paths.",                            :wukong => true
-settings.define :output,         description: "Output directory for the hdfs.",                                  :wukong => true
-settings.define :gemfile,        description: 
+
+def settings.usage() "usage: #{File.basename($0)} PROCESSOR_FILE|DATAFLOW_FILE [ --param=value | -p value | --param | -p]" ; end
+
+settings.define :map_command,    description: "Shell command to run as mapper, in place of this wukong script",    wukong: true
+settings.define :reduce_command, description: "Shell command to run as reducer, in place of this wukong script",   wukong: true
+settings.define :gemfile,        description: "Specify an alternative Gemfile to execute this wukong script with", wukong: true 
+settings.define :dry_run,        description: "Echo the command that will be run, but don't run it",               wukong: true
+settings.define :rm,             description: "Recursively remove the destination directory.",                     wukong: true
+settings.define :input,          description: "Comma-separated list of input paths.",                              wukong: true, required: true
+settings.define :output,         description: "Output directory for the hdfs.",                                    wukong: true, required: true
 settings.resolve!
 
 # Log.sev_threshold = Logger::ERROR
 
-Wukong::Hadoop::Driver.run(settings)
+Wukong::Hadoop::Driver.run(settings, *settings.rest)
+
