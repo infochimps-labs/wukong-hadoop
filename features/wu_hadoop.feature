@@ -1,4 +1,4 @@
-`Feature: Run wu-hadoop from the command line
+Feature: Run wu-hadoop from the command line
   In order to execute hadoop streaming commands
   As a user of wu-hadoop
   I should be able run wu-hadoop with wukong processors
