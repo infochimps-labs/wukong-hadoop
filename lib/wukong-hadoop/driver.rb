@@ -2,25 +2,25 @@ module Wukong
   module Hadoop
     class Driver < Wukong::Driver
 
-      attr_accessor :settings
+      attr_accessor :settings, :wu_file
       
-      def self.run(settings)
-        new(settings).run!
+      def self.run(settings, *extra_args)
+        new(settings, *extra_args).run!
       end
       
-      def initialize(settings)
-        @settings = settings
+      def initialize(settings, wu_file, *extra_args)
+        @settings = settings        
+        @wu_file  = wu_file
+        load this_script_filename
+        raise "No :mapper definition found in #{this_script_filename}" unless confirm_processor_defined?(:mapper)
       end
       
       def run!
-        if (input_paths.blank? || output_path.blank?) && (not settings[:dry_run])
-          raise "You need to specify a parsed input directory and a directory for output. Got #{input_paths} and #{output_path}"
-        end        
-        execute_hadoop_workflow
+        execute_command!(hadoop_commandline)
       end
 
       def this_script_filename
-        Pathname.new(settings.rest.first).realpath
+        Pathname.new(wu_file).realpath
       end
 
       def ruby_interpreter_path
@@ -34,17 +34,17 @@ module Wukong
       def output_path
         @output_path ||= settings[:output]
       end
-      
-      def wu_local_executable
-        Wukong.local_runner_location
+
+      def confirm_processor_defined? label
+        Wukong.registry.registered? label
       end
       
       def mapper_commandline
-        settings[:map_command]    || "#{ruby_interpreter_path} #{wu_local_executable} #{this_script_filename} --processor=mapper " + non_wukong_params        
+        settings[:map_command]    || "#{ruby_interpreter_path} bundle exec wu-local #{this_script_filename} --run=mapper " + non_wukong_params        
       end
       
       def reducer_commandline
-        settings[:reduce_command] || "#{ruby_interpreter_path} #{wu_local_executable} #{this_script_filename} --processor=reducer " + non_wukong_params                 
+        settings[:reduce_command] || "#{ruby_interpreter_path} bundle exec wu-local #{this_script_filename} --run=reducer " + non_wukong_params                 
       end
       
       def job_name
@@ -57,10 +57,10 @@ module Wukong
 
       def execute_command!(*args)
         command = args.flatten.reject(&:blank?).join(" \\\n    ")
-        Log.info "Running\n\n#{command}\n"
         if settings[:dry_run]
-          Log.info '== [Not running preceding command: dry run] =='
+          Log.info "Dry run:\n#{command}\n"
         else
+          Log.info "Launching hadoop!"
           overwrite_output_paths!(output_path) if settings[:rm] || settings[:overwrite]
           puts `#{command}`
           raise "Streaming command failed!" unless $?.success?
@@ -77,8 +77,13 @@ module Wukong
         settings[:hadoop_runner] || File.join(settings[:hadoop_home], 'bin/hadoop')
       end
 
+      def use_alternative_gemfile
+        ENV['BUNDLE_GEMFILE'] = settings[:gemfile]
+      end
+
       def hadoop_recycle_env
-        %w[RUBYLIB].map{ |var| %Q{-cmdenv '#{var}=#{ENV[var]}'} if ENV[var] }.compact
+        use_alternative_gemfile if settings[:gemfile]
+        %w[BUNDLE_GEMFILE].map{ |var| %Q{-cmdenv  '#{var}=#{ENV[var]}'} if ENV[var] }.compact
       end
 
       def hadoop_other_args
@@ -96,7 +101,7 @@ module Wukong
         settings[:reuse_jvms]          = '-1'    if     (settings[:reuse_jvms] == true)
         settings[:respect_exit_status] = 'false' if     (settings[:ignore_exit_status] == true)
         # If no reducer and no reduce_command, then skip the reduce phase
-        settings[:reduce_tasks]        = 0       unless (settings[:reduce_command] || settings[:reduce_tasks])
+        settings[:reduce_tasks]        = 0       unless (confirm_processor_defined?(:reducer) || settings[:reduce_command] || settings[:reduce_tasks])
         # Fields hadoop should use to distribute records to reducers
         unless settings[:partition_fields].blank?
           jobconf_options += [jobconf(:partition_fields), jobconf(:output_field_separator)]
@@ -125,25 +130,21 @@ module Wukong
       end
       
       # Assemble the hadoop command to execute
-      # and launch the hadoop runner to execute the script across all tasktrackers
-      def execute_hadoop_workflow
-        hadoop_commandline = [
-                              hadoop_runner,
-                              "jar #{settings[:hadoop_home]}/contrib/streaming/hadoop-*streaming*.jar",
-                              hadoop_jobconf_options,
-                              "-D mapred.job.name='#{job_name}'",
-                              hadoop_other_args,
-                              "-mapper  '#{mapper_commandline}'",
-                              "-reducer '#{reducer_commandline}'",
-                              "-input   '#{input_paths}'",
-                              "-output  '#{output_path}'",
-                              "-file    '#{this_script_filename}'",
-                              hadoop_recycle_env,
-                             ].flatten.compact.join(" \t\\\n  ")
-        Log.info "  Launching hadoop!"
-        execute_command!(hadoop_commandline)
-      end
-      
+      def hadoop_commandline
+        [
+         hadoop_runner,
+         "jar #{settings[:hadoop_home]}/contrib/streaming/hadoop-*streaming*.jar",
+         hadoop_jobconf_options,
+         "-D mapred.job.name='#{job_name}'",
+         hadoop_other_args,
+         "-mapper  '#{mapper_commandline}'",
+         "-reducer '#{reducer_commandline}'",
+         "-input   '#{input_paths}'",
+         "-output  '#{output_path}'",
+         "-file    '#{this_script_filename}'",
+         hadoop_recycle_env,
+        ].flatten.compact.join(" \t\\\n  ")
+      end      
     end
   end
 end
