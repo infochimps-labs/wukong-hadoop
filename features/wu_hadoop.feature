@@ -104,3 +104,10 @@ Feature: Run wu-hadoop from the command line
       -D other.opts=cool 	\
     """
     
+  Scenario: Failed hadoop job
+    Given a wukong script "examples/word_count.rb"
+    When I run `bundle exec wu-hadoop examples/word_count.rb --input=/foo --output=/bar`
+    Then the output should contain:
+    """
+    Streaming command failed!
+    """
