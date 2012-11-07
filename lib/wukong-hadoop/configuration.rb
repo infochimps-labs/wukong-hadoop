@@ -3,38 +3,38 @@ module Wukong
     Configuration = Configliere::Param.new unless defined? Configuration
 
     # Hadoop Options
-    Configuration.define :hadoop_home, :default => '/usr/lib/hadoop', :description => "Path to hadoop installation. HADOOP_HOME/bin/hadoop is used to run hadoop.", :env_var => 'HADOOP_HOME', :wukong => true
-    Configuration.define :hadoop_runner,                              :description => "Path to hadoop executable. Usually set --hadoop_home instead of this.", :wukong => true
+    Configuration.define :hadoop_home,             wukong: true,                description: 'Path to hadoop installation. HADOOP_HOME/bin/hadoop is used to run hadoop.', env_var: 'HADOOP_HOME', default: '/usr/lib/hadoop'
+    Configuration.define :hadoop_runner,           wukong: true,                description: 'Path to hadoop executable. Use this for non-standard hadoop installations.'
 
     # Translate simplified args to their hairy hadoop equivalents
-    Configuration.define :io_sort_mb,             :jobconf => true,   :description => 'io.sort.mb',                                             :wukong => true
-    Configuration.define :io_sort_record_percent, :jobconf => true,   :description => 'io.sort.record.percent',                                 :wukong => true
-    Configuration.define :job_name,               :jobconf => true,   :description => 'mapred.job.name',                                        :wukong => true
-    Configuration.define :key_field_separator,    :jobconf => true,   :description => 'map.output.key.field.separator',                         :wukong => true
-    Configuration.define :map_speculative,        :jobconf => true,   :description => 'mapred.map.tasks.speculative.execution',                 :wukong => true
-    Configuration.define :map_tasks,              :jobconf => true,   :description => 'mapred.map.tasks',                                       :wukong => true
-    Configuration.define :max_maps_per_cluster,   :jobconf => true,   :description => 'mapred.max.maps.per.cluster',                            :wukong => true
-    Configuration.define :max_maps_per_node,      :jobconf => true,   :description => 'mapred.max.maps.per.node',                               :wukong => true
-    Configuration.define :max_node_map_tasks,     :jobconf => true,   :description => 'mapred.tasktracker.map.tasks.maximum',                   :wukong => true
-    Configuration.define :max_node_reduce_tasks,  :jobconf => true,   :description => 'mapred.tasktracker.reduce.tasks.maximum',                :wukong => true
-    Configuration.define :max_record_length,      :jobconf => true,   :description => 'mapred.linerecordreader.maxlength',                      :wukong => true 
-    Configuration.define :max_reduces_per_cluster,:jobconf => true,   :description => 'mapred.max.reduces.per.cluster',                         :wukong => true
-    Configuration.define :max_reduces_per_node,   :jobconf => true,   :description => 'mapred.max.reduces.per.node',                            :wukong => true
-    Configuration.define :max_tracker_failures,   :jobconf => true,   :description => 'mapred.max.tracker.failures',                            :wukong => true
-    Configuration.define :max_map_attempts,       :jobconf => true,   :description => 'mapred.map.max.attempts',                                :wukong => true
-    Configuration.define :max_reduce_attempts,    :jobconf => true,   :description => 'mapred.reduce.max.attempts',                             :wukong => true
-    Configuration.define :min_split_size,         :jobconf => true,   :description => 'mapred.min.split.size',                                  :wukong => true
-    Configuration.define :output_field_separator, :jobconf => true,   :description => 'stream.map.output.field.separator',                      :wukong => true
-    Configuration.define :partition_fields,       :jobconf => true,   :description => 'num.key.fields.for.partition',                           :wukong => true
-    Configuration.define :reduce_tasks,           :jobconf => true,   :description => 'mapred.reduce.tasks',                                    :wukong => true
-    Configuration.define :respect_exit_status,    :jobconf => true,   :description => 'stream.non.zero.exit.is.failure',                        :wukong => true
-    Configuration.define :reuse_jvms,             :jobconf => true,   :description => 'mapred.job.reuse.jvm.num.tasks',                         :wukong => true
-    Configuration.define :sort_fields,            :jobconf => true,   :description => 'stream.num.map.output.key.fields',                       :wukong => true
-    Configuration.define :timeout,                :jobconf => true,   :description => 'mapred.task.timeout',                                    :wukong => true
-    Configuration.define :noempty,                                    :description => "Don't create zero-byte reduce files",                    :wukong => true
-    Configuration.define :split_on_xml_tag,                           :description => "Parse XML document by specifying the tag name: 'anything found between <tag> and </tag> will be treated as one record for map tasks'", :wukong => true
-    Configuration.define :input_format,                               :description => 'Fully qualified Java class name defining an alternative InputFormat.',  :wukong => true
-    Configuration.define :output_format,                              :description => 'Fully qualified Java class name defining an alternative OutputFormat.', :wukong => true
-    Configuration.define :java_opts,                                  :description => 'Additional java options to be passed to hadoop streaming.',             :wukong => true, :type => Array, :default => []
+    Configuration.define :io_sort_mb,              wukong: true, jobconf: true, description: 'io.sort.mb'
+    Configuration.define :io_sort_record_percent,  wukong: true, jobconf: true, description: 'io.sort.record.percent'
+    Configuration.define :job_name,                wukong: true, jobconf: true, description: 'mapred.job.name'
+    Configuration.define :key_field_separator,     wukong: true, jobconf: true, description: 'map.output.key.field.separator'
+    Configuration.define :map_speculative,         wukong: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
+    Configuration.define :map_tasks,               wukong: true, jobconf: true, description: 'mapred.map.tasks'
+    Configuration.define :max_maps_per_cluster,    wukong: true, jobconf: true, description: 'mapred.max.maps.per.cluster'
+    Configuration.define :max_maps_per_node,       wukong: true, jobconf: true, description: 'mapred.max.maps.per.node'
+    Configuration.define :max_node_map_tasks,      wukong: true, jobconf: true, description: 'mapred.tasktracker.map.tasks.maximum'
+    Configuration.define :max_node_reduce_tasks,   wukong: true, jobconf: true, description: 'mapred.tasktracker.reduce.tasks.maximum'
+    Configuration.define :max_record_length,       wukong: true, jobconf: true, description: 'mapred.linerecordreader.maxlength' 
+    Configuration.define :max_reduces_per_cluster, wukong: true, jobconf: true, description: 'mapred.max.reduces.per.cluster'
+    Configuration.define :max_reduces_per_node,    wukong: true, jobconf: true, description: 'mapred.max.reduces.per.node'
+    Configuration.define :max_tracker_failures,    wukong: true, jobconf: true, description: 'mapred.max.tracker.failures'
+    Configuration.define :max_map_attempts,        wukong: true, jobconf: true, description: 'mapred.map.max.attempts'
+    Configuration.define :max_reduce_attempts,     wukong: true, jobconf: true, description: 'mapred.reduce.max.attempts'
+    Configuration.define :min_split_size,          wukong: true, jobconf: true, description: 'mapred.min.split.size'
+    Configuration.define :output_field_separator,  wukong: true, jobconf: true, description: 'stream.map.output.field.separator'
+    Configuration.define :partition_fields,        wukong: true, jobconf: true, description: 'num.key.fields.for.partition'
+    Configuration.define :reduce_tasks,            wukong: true, jobconf: true, description: 'mapred.reduce.tasks'
+    Configuration.define :respect_exit_status,     wukong: true, jobconf: true, description: 'stream.non.zero.exit.is.failure'
+    Configuration.define :reuse_jvms,              wukong: true, jobconf: true, description: 'mapred.job.reuse.jvm.num.tasks'
+    Configuration.define :sort_fields,             wukong: true, jobconf: true, description: 'stream.num.map.output.key.fields'
+    Configuration.define :timeout,                 wukong: true, jobconf: true, description: 'mapred.task.timeout'
+    Configuration.define :noempty,                 wukong: true,                description: "Don't create zero-byte reduce files"
+    Configuration.define :split_on_xml_tag,        wukong: true,                description: "Parse XML document by specifying the tag name: 'anything found between <tag> and </tag> will be treated as one record for map tasks'"
+    Configuration.define :input_format,            wukong: true,                description: 'Fully qualified Java class name defining an alternative InputFormat.'
+    Configuration.define :output_format,           wukong: true,                description: 'Fully qualified Java class name defining an alternative OutputFormat.'
+    Configuration.define :java_opts,               wukong: true,                description: 'Additional java options to be passed to hadoop streaming.', :type => Array, :default => []
   end
 end
