@@ -83,11 +83,17 @@ module Wukong
 
       def hadoop_recycle_env
         use_alternative_gemfile if settings[:gemfile]
-        %w[BUNDLE_GEMFILE].map{ |var| %Q{-cmdenv  '#{var}=#{ENV[var]}'} if ENV[var] }.compact
+        %w[BUNDLE_GEMFILE].map{ |var| %Q{-cmdenv       '#{var}=#{ENV[var]}'} if ENV[var] }.compact
+      end
+
+      def parsed_java_opts
+        settings[:java_opts].map do |java_opt| 
+          java_opt.split('-D').reject{ |opt| opt.blank? }.map{ |opt| '-D ' + opt.strip }
+        end.flatten
       end
 
       def hadoop_other_args
-        extra_str_args  = [ settings[:extra_args] ]
+        extra_str_args  = parsed_java_opts
         if settings[:split_on_xml_tag]
           extra_str_args << %Q{-inputreader 'StreamXmlRecordReader,begin=<#{options.split_on_xml_tag}>,end=</#{options.split_on_xml_tag}>'}
         end
@@ -128,6 +134,12 @@ module Wukong
       def jobconf option
         "-D %s=%s" % [settings.definition_of(option, :description), settings[option]] if settings[option]
       end
+
+      def io_formats
+        input  = "-inputformat  '#{settings[:input_format]}'"  if settings[:input_format]
+        output = "-outputformat '#{settings[:output_format]}'" if settings[:output_format]
+        [input, output]
+      end
       
       # Assemble the hadoop command to execute
       def hadoop_commandline
@@ -137,11 +149,12 @@ module Wukong
          hadoop_jobconf_options,
          "-D mapred.job.name='#{job_name}'",
          hadoop_other_args,
-         "-mapper  '#{mapper_commandline}'",
-         "-reducer '#{reducer_commandline}'",
-         "-input   '#{input_paths}'",
-         "-output  '#{output_path}'",
-         "-file    '#{this_script_filename}'",
+         "-mapper       '#{mapper_commandline}'",
+         "-reducer      '#{reducer_commandline}'",
+         "-input        '#{input_paths}'",
+         "-output       '#{output_path}'",
+         "-file         '#{this_script_filename}'",
+         io_formats,
          hadoop_recycle_env,
         ].flatten.compact.join(" \t\\\n  ")
       end      

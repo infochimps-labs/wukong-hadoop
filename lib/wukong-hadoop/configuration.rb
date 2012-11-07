@@ -4,7 +4,7 @@ module Wukong
 
     # Hadoop Options
     Configuration.define :hadoop_home, :default => '/usr/lib/hadoop', :description => "Path to hadoop installation. HADOOP_HOME/bin/hadoop is used to run hadoop.", :env_var => 'HADOOP_HOME', :wukong => true
-    Configuration.define :hadoop_runner,                              :description => "Path to hadoop script. Usually set --hadoop_home instead of this.", :wukong => true
+    Configuration.define :hadoop_runner,                              :description => "Path to hadoop executable. Usually set --hadoop_home instead of this.", :wukong => true
 
     # Translate simplified args to their hairy hadoop equivalents
     Configuration.define :io_sort_mb,             :jobconf => true,   :description => 'io.sort.mb',                                             :wukong => true
@@ -31,7 +31,10 @@ module Wukong
     Configuration.define :reuse_jvms,             :jobconf => true,   :description => 'mapred.job.reuse.jvm.num.tasks',                         :wukong => true
     Configuration.define :sort_fields,            :jobconf => true,   :description => 'stream.num.map.output.key.fields',                       :wukong => true
     Configuration.define :timeout,                :jobconf => true,   :description => 'mapred.task.timeout',                                    :wukong => true
-    Configuration.define :noempty,                                    :description => "Don't create zero-byte reduce files", :wukong => true
+    Configuration.define :noempty,                                    :description => "Don't create zero-byte reduce files",                    :wukong => true
     Configuration.define :split_on_xml_tag,                           :description => "Parse XML document by specifying the tag name: 'anything found between <tag> and </tag> will be treated as one record for map tasks'", :wukong => true
+    Configuration.define :input_format,                               :description => 'Fully qualified Java class name defining an alternative InputFormat.',  :wukong => true
+    Configuration.define :output_format,                              :description => 'Fully qualified Java class name defining an alternative OutputFormat.', :wukong => true
+    Configuration.define :java_opts,                                  :description => 'Additional java options to be passed to hadoop streaming.',             :wukong => true, :type => Array, :default => []
   end
 end

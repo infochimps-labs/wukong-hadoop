@@ -14,18 +14,18 @@ Feature: Run wu-hadoop from the command line
     """
     And the output should match:
     """
-      -mapper  '.*ruby bundle exec wu-local .*word_count.rb --run=mapper ' 	\\
-      -reducer '.*ruby bundle exec wu-local .*word_count.rb --run=reducer ' 	\\
+      -mapper       '.*ruby bundle exec wu-local .*word_count.rb --run=mapper ' 	\\
+      -reducer      '.*ruby bundle exec wu-local .*word_count.rb --run=reducer ' 	\\
     """
     And the output should contain:
     """
-      -input   '/foo' 	\
-      -output  '/bar' 	\
+      -input        '/foo' 	\
+      -output       '/bar' 	\
     """
     And the output should match:
     """
-      -file    '.*word_count.rb' 	\\
-      -cmdenv  'BUNDLE_GEMFILE=.*wukong-hadoop/Gemfile'
+      -file         '.*word_count.rb' 	\\
+      -cmdenv       'BUNDLE_GEMFILE=.*wukong-hadoop/Gemfile'
     """
 
   Scenario: A wu-hadoop command without an input or output
@@ -41,7 +41,7 @@ Feature: Run wu-hadoop from the command line
     When  I run `bundle exec wu-hadoop examples/word_count.rb --dry_run --input=/foo --output=/bar --gemfile=alt/Gemfile`
     Then  the output should contain:
     """
-    -cmdenv  'BUNDLE_GEMFILE=alt/Gemfile'
+      -cmdenv       'BUNDLE_GEMFILE=alt/Gemfile'
     """
     
   Scenario: Skipping the reduce step
@@ -83,6 +83,24 @@ Feature: Run wu-hadoop from the command line
     When I run `bundle exec wu-hadoop examples/word_count.rb --dry_run --input=/foo --output=/bar --foo=bar`
     Then the output should match:
     """
-      -mapper  '.* --foo=bar' 	\\
-      -reducer '.* --foo=bar' 	\\
+      -mapper       '.* --foo=bar' 	\\
+      -reducer      '.* --foo=bar' 	\\
     """
+
+  Scenario: Specifying input and output formats
+    Given a wukong script "examples/word_count.rb"
+    When I run `bundle exec wu-hadoop examples/word_count.rb --dry_run --input=/foo --output=/bar --input_format=com.foo.BarInputFormat`
+    Then the output should contain:
+    """
+      -inputformat  'com.foo.BarInputFormat' 	\
+    """
+
+  Scenario: Specifying additional java options
+    Given a wukong script "examples/word_count.rb"
+    When I run `bundle exec wu-hadoop examples/word_count.rb --dry_run --input=/foo --output=/bar --java_opts=-Dfoo.bar=baz,-Dother.opts=cool`
+    Then the output should contain:
+    """
+      -D foo.bar=baz 	\
+      -D other.opts=cool 	\
+    """
+    
