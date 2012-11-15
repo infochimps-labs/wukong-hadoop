@@ -5,7 +5,4 @@ require 'wukong'
 
 require 'wukong-hadoop/configuration'
 require 'wukong-hadoop/driver'
-require 'wukong-hadoop/hadoop_env_methods'
-
-
-
+require 'wukong-hadoop/extensions'

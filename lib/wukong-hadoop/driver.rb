@@ -1,58 +1,126 @@
+require_relative("local_invocation")
+require_relative("hadoop_invocation")
+
 module Wukong
   module Hadoop
     class Driver < Wukong::Driver
 
-      attr_accessor :settings, :wu_file
-      
+      include HadoopInvocation
+      include LocalInvocation
+
+      attr_accessor :settings
+
       def self.run(settings, *extra_args)
-        new(settings, *extra_args).run!
+        begin
+          new(settings, *extra_args).run!
+        rescue Wukong::Error => e
+          $stderr.puts e.message
+          exit(127)
+        end
       end
       
-      def initialize(settings, wu_file, *extra_args)
-        @settings = settings        
-        @wu_file  = wu_file
-        load this_script_filename
-        raise "No :mapper definition found in #{this_script_filename}" unless confirm_processor_defined?(:mapper)
+      def initialize(settings, *args)
+        @settings         = settings
+        self.mapper_file  = args.shift
+        self.reducer_file = args.shift
       end
-      
+
+      def mode
+        settings[:mode].to_s == 'local' ? :local : :hadoop
+      end
+
       def run!
-        execute_command!(hadoop_commandline)
+        if mode == :local
+          Log.info "Launching local!"
+          execute_command!(local_commandline)
+        else
+          ensure_input_and_output!
+          overwrite! if settings[:rm] || settings[:overwrite]
+          Log.info "Launching Hadoop!"
+          execute_command!(hadoop_commandline)
+        end
       end
 
-      def this_script_filename
-        Pathname.new(wu_file).realpath
+      def reduce?
+        settings[:reduce_command] || processor_defined?(reducer)
       end
 
-      def ruby_interpreter_path
-        Pathname.new(File.join(Config::CONFIG['bindir'], Config::CONFIG['RUBY_INSTALL_NAME'] + Config::CONFIG['EXEEXT'])).realpath
+      def processor_defined? proc
+        Wukong.registry.registered?(proc)
       end
 
-      def input_paths
-        @input_paths ||= settings[:input]
-      end
-
-      def output_path
-        @output_path ||= settings[:output]
-      end
-
-      def confirm_processor_defined? label
-        Wukong.registry.registered? label
-      end
-      
       def mapper_commandline
-        settings[:map_command]    || "#{ruby_interpreter_path} bundle exec wu-local #{this_script_filename} --run=mapper " + non_wukong_params        
+        settings[:map_command]    || "#{command_prefix} wu-local #{mapper_file} --run=#{mapper} " + non_wukong_params
       end
       
       def reducer_commandline
-        settings[:reduce_command] || "#{ruby_interpreter_path} bundle exec wu-local #{this_script_filename} --run=reducer " + non_wukong_params                 
+        return settings[:reduce_command] if settings[:reduce_command]
+        if processor_defined?(reducer)
+          "#{command_prefix} wu-local #{reducer_file} --run=#{reducer} " + non_wukong_params
+        else
+          ''
+        end
+      end
+
+      def command_prefix
+        settings[:command_prefix]
       end
       
-      def job_name
-        settings[:job_name]       || "#{File.basename(this_script_filename)}---#{input_paths}---#{output_path}".gsub(%r{[^\w/\.\-\+]+}, '')          
+      def mapper_file= path
+        # raise Error.new("No such path: #{path}") unless File.exist?(path)
+        @mapper_file = Pathname.new(path).realpath
+      end
+
+      def mapper_file
+        @mapper_file
+      end
+
+      def reducer_file= path
+        return unless path
+        raise Error.new("No such path: #{path}") unless File.exist?(path)
+        @reducer_file = Pathname.new(path).realpath
+      end
+
+      def reducer_file
+        @reducer_file || @mapper_file
+      end
+
+      def mapper
+        case
+        when settings[:mapper]
+          settings[:mapper]
+        when given_explicit_mapper_and_reducer?
+          File.basename(mapper_file, '.rb')
+        else
+          'mapper'
+        end
+      end
+
+      def reducer
+        case
+        when settings[:reducer]
+          settings[:reducer]
+        when given_explicit_mapper_and_reducer?
+          File.basename(reducer_file, '.rb')
+        else
+          'reducer'
+        end
       end
       
       def non_wukong_params
         settings.reject{ |param, val| settings.definition_of(param, :wukong) }.map{ |param,val| "--#{param}=#{val}" }.join(" ")
+      end
+      
+      def given_explicit_mapper_and_reducer?
+        mapper_file && reducer_file
+      end
+
+      def input_paths
+        @input_paths ||= (settings[:input] || [])
+      end
+
+      def output_path
+        settings[:output]
       end
 
       def execute_command!(*args)
@@ -60,104 +128,11 @@ module Wukong
         if settings[:dry_run]
           Log.info "Dry run:\n#{command}\n"
         else
-          Log.info "Launching hadoop!"
-          overwrite_output_paths!(output_path) if settings[:rm] || settings[:overwrite]
           puts `#{command}`
           raise "Streaming command failed!" unless $?.success?
         end
       end
       
-      def overwrite_output_paths! output_path
-        cmd = %Q{#{settings[:hadoop_runner]} fs -rmr '#{output_path}'}
-        Log.info "Removing output file #{output_path}: #{cmd}"
-        puts `#{cmd}`
-      end
-
-      def hadoop_runner
-        settings[:hadoop_runner] || File.join(settings[:hadoop_home], 'bin/hadoop')
-      end
-
-      def use_alternative_gemfile
-        ENV['BUNDLE_GEMFILE'] = settings[:gemfile]
-      end
-
-      def hadoop_recycle_env
-        use_alternative_gemfile if settings[:gemfile]
-        %w[BUNDLE_GEMFILE].map{ |var| %Q{-cmdenv       '#{var}=#{ENV[var]}'} if ENV[var] }.compact
-      end
-
-      def parsed_java_opts
-        settings[:java_opts].map do |java_opt| 
-          java_opt.split('-D').reject{ |opt| opt.blank? }.map{ |opt| '-D ' + opt.strip }
-        end.flatten
-      end
-
-      def hadoop_other_args
-        extra_str_args  = parsed_java_opts
-        if settings[:split_on_xml_tag]
-          extra_str_args << %Q{-inputreader 'StreamXmlRecordReader,begin=<#{options.split_on_xml_tag}>,end=</#{options.split_on_xml_tag}>'}
-        end
-        extra_str_args   << ' -lazyOutput' if settings[:noempty]  # don't create reduce file if no records
-        extra_str_args   << ' -partitioner org.apache.hadoop.mapred.lib.KeyFieldBasedPartitioner' unless settings[:partition_fields].blank?
-        extra_str_args
-      end
-
-      def hadoop_jobconf_options
-        jobconf_options = []
-        settings[:reuse_jvms]          = '-1'    if     (settings[:reuse_jvms] == true)
-        settings[:respect_exit_status] = 'false' if     (settings[:ignore_exit_status] == true)
-        # If no reducer and no reduce_command, then skip the reduce phase
-        settings[:reduce_tasks]        = 0       unless (confirm_processor_defined?(:reducer) || settings[:reduce_command] || settings[:reduce_tasks])
-        # Fields hadoop should use to distribute records to reducers
-        unless settings[:partition_fields].blank?
-          jobconf_options += [jobconf(:partition_fields), jobconf(:output_field_separator)]
-        end
-        jobconf_options += [
-                            :io_sort_mb,               :io_sort_record_percent,
-                            :map_speculative,          :map_tasks,
-                            :max_maps_per_cluster,     :max_maps_per_node,
-                            :max_node_map_tasks,       :max_node_reduce_tasks,
-                            :max_reduces_per_cluster,  :max_reduces_per_node,
-                            :max_record_length,        :min_split_size,
-                            :output_field_separator,   :key_field_separator,
-                            :partition_fields,         :sort_fields,
-                            :reduce_tasks,             :respect_exit_status,
-                            :reuse_jvms,               :timeout,
-                            :max_tracker_failures,     :max_map_attempts,
-                            :max_reduce_attempts
-                           ].map{ |opt| jobconf(opt)}
-        jobconf_options.flatten.compact
-      end
-
-      # emit a -jobconf hadoop option if the simplified command line arg is present
-      # if not, the resulting nil will be elided later
-      def jobconf option
-        "-D %s=%s" % [settings.definition_of(option, :description), settings[option]] if settings[option]
-      end
-
-      def io_formats
-        input  = "-inputformat  '#{settings[:input_format]}'"  if settings[:input_format]
-        output = "-outputformat '#{settings[:output_format]}'" if settings[:output_format]
-        [input, output]
-      end
-      
-      # Assemble the hadoop command to execute
-      def hadoop_commandline
-        [
-         hadoop_runner,
-         "jar #{settings[:hadoop_home]}/contrib/streaming/hadoop-*streaming*.jar",
-         hadoop_jobconf_options,
-         "-D mapred.job.name='#{job_name}'",
-         hadoop_other_args,
-         "-mapper       '#{mapper_commandline}'",
-         "-reducer      '#{reducer_commandline}'",
-         "-input        '#{input_paths}'",
-         "-output       '#{output_path}'",
-         "-file         '#{this_script_filename}'",
-         io_formats,
-         hadoop_recycle_env,
-        ].flatten.compact.join(" \t\\\n  ")
-      end      
     end
   end
 end

@@ -49,5 +49,3 @@ module Wukong
     end
   end
 end
-
-Wukong::Processor.class_eval{ include Wukong::Hadoop::EnvMethods }

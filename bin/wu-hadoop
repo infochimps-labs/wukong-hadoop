@@ -1,21 +1,76 @@
 #!/usr/bin/env ruby
-$:.unshift File.expand_path('../../lib', __FILE__)
 
 require 'wukong-hadoop'
-settings = Wukong::Hadoop::Configuration.use(:commandline)
 
-def settings.usage() "usage: #{File.basename($0)} PROCESSOR_FILE|DATAFLOW_FILE [ --param=value | -p value | --param | -p]" ; end
+settings = Wukong::Hadoop::Configuration
 
-settings.define :map_command,    description: "Shell command to run as mapper, in place of this wukong script",    wukong: true
-settings.define :reduce_command, description: "Shell command to run as reducer, in place of this wukong script",   wukong: true
+settings.use(:commandline)
+
+def settings.usage()
+  "usage: #{File.basename($0)} PROCESSOR|FLOW [PROCESSOR|FLOW] [ --param=value | -p value | --param | -p]"
+end
+
+settings.description = <<EOF
+wu-hadoop is a tool to model and launch Wukong processors as
+map/reduce workflows within the Hadoop framework.
+
+Use wu-hadoop with existing processors in `local' mode to test the
+logic of your job
+
+  $ cat novel.txt | wu-hadoop mapper.rb reducer.rb --mode=local
+
+then launch those same processors within a Hadoop job:
+
+  $ wu-hadoop mapper.rb reducer.rb --input=/hdfs/input/path1,/hdfs/input/path2/*/data --output=/hdfs/output/path
+
+You can also define (or require) both processors in a single file
+
+  $ wu-hadoop job.rb ...
+
+where it is assumed that your mapper is called 'mapper' and your
+reducer 'reducer'.
+
+More generally, you can specify the mapper and reducer directly
+
+$ wu-hadoop jobs.rb --mapper=tokenizer --reducer=counter ...
+
+or even just the low-level commandlines themselves
+
+$ wu-hadoop jobs.rb --mapper=tokenizer --reduce_command='uniq -c' ...
+$ wu-hadoop jobs.rb --map_command='cut -f3' --reducer=counter ...
+$ wu-hadoop jobs.rb --map_command='cut -f3' --reduce_command='uniq -c' ...
+
+If you don't specify a --reducer explicitly, and no processor named
+:reducer exists in the environment, then we assume you are launching a
+map-only job and 'mapred.tasktracker.reduce.tasks.maximum' will
+correspondingly be set to 0.  You can achieve this directly with the
+--reduce_tasks option.
+
+Many other Hadoop options have been wrapped with similarly friendly
+names below.  These are ignored when running in `local' mode.
+
+Some options (like `--sort_command') only make sense in `local' mode.
+These are ignored in `hadoop' mode.
+EOF
+
+settings.define :mode,           description: "Run in either 'hadoop' or 'local' mode",                                        wukong: true, :default => 'hadoop'
+settings.define :map_command,    description: "Shell command to run as mapper, in place of a constructed wu-local command",    wukong: true
+settings.define :reduce_command, description: "Shell command to run as reducer, in place of a constructed wu-local command",   wukong: true
+settings.define :sort_command,   description: "Shell command to run as sorter (only in `local' mode)",             wukong: true, :default => 'sort'
+settings.define :command_prefix, description: "Prefex to insert before all Wukong commands",                       wukong: true, :default => 'bundle exec'
+settings.define :mapper,         description: "Name of processor to use as a mapper",                              wukong: true
+settings.define :reducer,        description: "Name of processor to use as a reducer",                             wukong: true
 settings.define :gemfile,        description: "Specify an alternative Gemfile to execute this wukong script with", wukong: true 
-settings.define :dry_run,        description: "Echo the command that will be run, but don't run it",               wukong: true
-settings.define :rm,             description: "Recursively remove the destination directory.",                     wukong: true
-settings.define :input,          description: "Comma-separated list of input paths.",                              wukong: true, required: true
-settings.define :output,         description: "Output directory for the hdfs.",                                    wukong: true, required: true
-settings.resolve!
+settings.define :dry_run,        description: "Echo the command that will be run, but don't run it",               wukong: true, :type => :boolean, :default => false
+settings.define :rm,             description: "Recursively remove the destination directory.",                     wukong: true, :type => :boolean, :default => false
+settings.define :input,          description: "Comma-separated list of input paths",                               wukong: true
+settings.define :output,         description: "Output path.",                                                      wukong: true
 
-# Log.sev_threshold = Logger::ERROR
+require 'wukong/boot' ; Wukong.boot!(settings)
+
+if settings.rest.empty?
+  settings.dump_help
+  exit(1)
+end
 
 Wukong::Hadoop::Driver.run(settings, *settings.rest)
-
