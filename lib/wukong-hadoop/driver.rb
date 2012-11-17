@@ -56,7 +56,7 @@ module Wukong
       def reducer_commandline
         return settings[:reduce_command] if settings[:reduce_command]
         if processor_defined?(reducer)
-          "#{command_prefix} wu-local #{reducer_file} --run=#{reducer} " + non_wukong_params
+          "#{command_prefix} wu-local #{reducer_file} --run=#{reducer} " + non_wukong_hadoop_params
         else
           ''
         end
@@ -108,7 +108,8 @@ module Wukong
       end
       
       def non_wukong_params
-        settings.reject{ |param, val| settings.definition_of(param, :wukong) }.map{ |param,val| "--#{param}=#{val}" }.join(" ")
+        s = (defined?(Deploy) ? Deploy.original_settings : settings)
+        s.reject{ |param, val| settings.definition_of(param, :wukong) }.map{ |param,val| "--#{param}=#{val}" }.join(" ")
       end
       
       def given_explicit_mapper_and_reducer?
