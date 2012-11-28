@@ -8,9 +8,8 @@ href="http://hadoop.apache.org/docs/r0.15.2/streaming.html">streaming
 interface</a>.
 
 Before you use Wukong-Hadoop to develop, test, and write your Hadoop
-jobs, you might want to read about <a
-href="http://github.com/infochimps-labs/wukong">Wukong</a>, write some
-<a href="http://github.com/infochimps-labs/wukong#processors>simple processors</a>, and read about the structure of a <a href="http://en.wikipedia.org/wiki/MapReduce">map/reduce job</a>.
+jobs, you might want to read about <a href="http://github.com/infochimps-labs/wukong">Wukong</a>, write some
+<a href="http://github.com/infochimps-labs/wukong#processors">simple processors</a>, and read about the structure of a <a href="http://en.wikipedia.org/wiki/MapReduce">map/reduce job</a>.
 
 You might also want to check out some other projects which enrich the
 Wukong and Hadoop experience:
