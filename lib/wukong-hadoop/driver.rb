@@ -1,9 +1,9 @@
 require 'shellwords'
+require_relative("driver/inputs_and_outputs")
 require_relative("driver/map_logic")
 require_relative("driver/reduce_logic")
 require_relative("driver/local_invocation")
 require_relative("driver/hadoop_invocation")
-
 
 module Wukong
   module Hadoop
@@ -19,6 +19,7 @@ module Wukong
     # it will ultimately execute.
     class Driver < Wukong::Driver
 
+      include InputsAndOutputs
       include MapLogic
       include ReduceLogic
       include HadoopInvocation
@@ -165,20 +166,6 @@ module Wukong
       def params_to_pass
         s = (Wukong.loaded_deploy_pack? ? Deploy.pre_deploy_settings : settings)
         s.reject{ |param, val| s.definition_of(param, :wukong_hadoop) }.map{ |param,val| "--#{param}=#{Shellwords.escape(val.to_s)}" }.join(" ")
-      end
-
-      # The input paths to read from.
-      #
-      # @return [String]
-      def input_paths
-        (settings[:input] || [])
-      end
-
-      # The output path to write to.
-      #
-      # @return [String]
-      def output_path
-        settings[:output]
       end
 
       # Execute a command composed of the given parts.

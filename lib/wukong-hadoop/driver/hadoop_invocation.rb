@@ -143,9 +143,11 @@ module Wukong
       end
 
       # :nodoc:
+      #
+      # http://hadoop.apache.org/docs/r0.20.2/streaming.html#Package+Files+With+Job+Submissions
       def hadoop_files
-        if single_job_arg? && args.first.to_s =~ /\.rb$/
-          "-file         '#{args.first}'" # FIXME what about reducer file?
+        args.find_all { |arg| arg.to_s =~ /\.rb$/ }.map do |arg|
+          "-file         '#{arg}'" 
         end
       end
 
@@ -174,7 +176,7 @@ module Wukong
 
       # :nodoc:
       def java_opt option, value
-        "-D %s=%s" % [option, Shellwords.escape(value)] if value
+        "-D %s=%s" % [option, Shellwords.escape(value.to_s)] if value
       end
 
     end
