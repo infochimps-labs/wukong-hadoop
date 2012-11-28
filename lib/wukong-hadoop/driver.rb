@@ -7,6 +7,16 @@ require_relative("driver/hadoop_invocation")
 
 module Wukong
   module Hadoop
+
+    # The <tt>Hadoop::Driver</tt> class contains the logic to examine
+    # arguments and construct command lines which it will execute to
+    # create the desired behavior.
+    #
+    # The Hadoop::Driver will introspect on its arguments to guess (if
+    # not given) the processors to use as mapper and reducer in a
+    # map/reduce job.  It will also decide whether to run that job in
+    # local or Hadoop mode.  These decisions result in a command which
+    # it will ultimately execute.
     class Driver < Wukong::Driver
 
       include MapLogic
@@ -21,7 +31,7 @@ module Wukong
 
       # The (processed) arguments for this driver.
       #
-      # @param [Array<String>]
+      # @param [Array<String, Pathname>]
       attr_reader   :args
 
       # Initialize and run a new Wukong::Hadoop::Driver for the given
