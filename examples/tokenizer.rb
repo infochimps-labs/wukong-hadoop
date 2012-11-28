@@ -1,4 +1,4 @@
-Wukong.processor(:mapper) do
+Wukong.processor(:tokenizer) do
   
   field :min_length, Integer,  :default => 1
   field :max_length, Integer,  :default => 256
@@ -24,21 +24,5 @@ Wukong.processor(:mapper) do
   def acceptable? token
     (min_length..max_length).include?(token.length)
   end
-end
-
-Wukong.processor(:reducer, Wukong::Processor::Accumulator) do
-
-  attr_accessor :count
   
-  def start record
-    self.count = 0
-  end
-  
-  def accumulate record
-    self.count += 1
-  end
-
-  def finalize
-    yield [key, count].join("\t")
-  end
 end

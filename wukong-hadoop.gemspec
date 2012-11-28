@@ -30,7 +30,6 @@ EOF
 
   gem.add_development_dependency 'rake',     '~> 0.9'
   gem.add_development_dependency 'rspec',    '~> 2'
-  gem.add_development_dependency 'cucumber', '~> 1.2'
-  gem.add_development_dependency 'aruba',    '~> 0.4'
+  gem.add_development_dependency 'aruba'
   
 end
