@@ -4,7 +4,7 @@ describe Wukong::Hadoop::HadoopInvocation do
   
   let(:map_only)   { driver('regexp',          input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
   let(:map_reduce) { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
-  let(:complex)    { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', map_tasks: '100', job_name: 'testy', java_opts: ['-D foo.bar=3 -D baz.booz=hello', '-D hi.there=bye']) }
+  let(:complex)    { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', map_tasks: '100', job_name: 'testy', java_opts: ['-D foo.bar=3 -D baz.booz=hello', '-D hi.there=bye'], :reduce_tasks => 20) }
   let(:custum_io)  { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', input_format: 'com.example.InputFormat', output_format: 'com.example.OutputFormat') }
 
   context "defining input paths" do
@@ -40,6 +40,18 @@ describe Wukong::Hadoop::HadoopInvocation do
     end
     it "uses a blank reducer for a map-only job" do
       map_only.hadoop_commandline.should match(%r{-reducer\s+''})
+    end
+  end
+
+  context "setting the number of reduce tasks" do
+    it "does nothing on a map/reduce job" do
+      map_reduce.hadoop_commandline.should_not match(%r{-D mapred.reduce.tasks})
+    end
+    it "respects the option when given" do
+      complex.hadoop_commandline.should  match(%r{-D mapred.reduce.tasks=20})
+    end
+    it "sets reduce tasks to 0 for a map-only job" do
+      map_only.hadoop_commandline.should match(%r{-D mapred.reduce.tasks=0})
     end
   end
 

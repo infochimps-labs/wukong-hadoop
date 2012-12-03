@@ -103,7 +103,7 @@ module Wukong
         settings[:reuse_jvms]          = '-1'    if     (settings[:reuse_jvms] == true)
         settings[:respect_exit_status] = 'false' if     (settings[:ignore_exit_status] == true)
         # If no reducer and no reduce_command, then skip the reduce phase
-        settings[:reduce_tasks]        = 0       unless (reduce? || settings[:reduce_tasks].nil?)
+        settings[:reduce_tasks]        = 0       unless (reduce? || (settings[:reduce_tasks] && settings[:reduce_tasks].to_i == 0))
         # Fields hadoop should use to distribute records to reducers
         unless settings[:partition_fields].blank?
           jobconf_options += [jobconf(:partition_fields), jobconf(:output_field_separator)]
