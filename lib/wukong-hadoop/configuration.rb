@@ -39,7 +39,10 @@ module Wukong
       settings.define :split_on_xml_tag,        wukong_hadoop: true,                description: "Parse XML document by specifying the tag name: 'anything found between <tag> and </tag> will be treated as one record for map tasks'"
       settings.define :input_format,            wukong_hadoop: true,                description: 'Fully qualified Java class name defining an alternative InputFormat.'
       settings.define :output_format,           wukong_hadoop: true,                description: 'Fully qualified Java class name defining an alternative OutputFormat.'
-      settings.define :java_opts,               wukong_hadoop: true,                description: 'Additional java options to be passed to hadoop streaming.', :type => Array, :default => []
+      settings.define :java_opts,               wukong_hadoop: true,                description: 'Additional Java options to be passed to hadoop streaming.', :type => Array, :default => []
+      settings.define :files,                   wukong_hadoop: true,                description: "Comma-separated list of files (or globs) to be copied to the MapReduce cluster (-files).", :type => Array, :default => []
+      settings.define :jars,                    wukong_hadoop: true,                description: "Comma-separated list of jars (or globs) to include on the Hadoop CLASSPATH (-libjars).", :type => Array, :default => []
+      settings.define :archives,                wukong_hadoop: true,                description: "Comma-separated list of archives to be unarchived on each worker (-archives).", :type => Array, :default => []
 
       # Options given on the command-line
       settings.define :mode,           description: "Run in either 'hadoop' or 'local' mode",                                        wukong_hadoop: true, :default => 'hadoop'

@@ -5,7 +5,8 @@ describe Wukong::Hadoop::HadoopInvocation do
   let(:map_only)   { driver('regexp',          input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
   let(:map_reduce) { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
   let(:complex)    { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', map_tasks: '100', job_name: 'testy', java_opts: ['-D foo.bar=3 -D baz.booz=hello', '-D hi.there=bye'], :reduce_tasks => 20) }
-  let(:custum_io)  { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', input_format: 'com.example.InputFormat', output_format: 'com.example.OutputFormat') }
+  let(:custom_io)  { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', input_format: 'com.example.InputFormat', output_format: 'com.example.OutputFormat') }
+  let(:many_files) { driver('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', files: %w[/file/1 /file/2], archives: %w[/archive/1 /archive/2], jars: %w[/jar/1 /jar/2])}
 
   context "defining input paths" do
     it "raises an error unless given an --input option" do
@@ -15,7 +16,7 @@ describe Wukong::Hadoop::HadoopInvocation do
       map_reduce.hadoop_commandline.should match(%r{-input\s+'/tmp/input1,/tmp/input2'})
     end
     it "sets its input format given the --input_format option" do
-      custum_io.hadoop_commandline.should match(%r{-inputformat\s+'com.example.InputFormat'})
+      custom_io.hadoop_commandline.should match(%r{-inputformat\s+'com.example.InputFormat'})
     end
   end
   
@@ -27,7 +28,7 @@ describe Wukong::Hadoop::HadoopInvocation do
       map_reduce.hadoop_commandline.should match(%r{-output\s+'/tmp/output'})
     end
     it "sets its output format given the --output_format option" do
-      custum_io.hadoop_commandline.should match(%r{-outputformat\s+'com.example.OutputFormat'})
+      custom_io.hadoop_commandline.should match(%r{-outputformat\s+'com.example.OutputFormat'})
     end
   end
 
@@ -83,6 +84,24 @@ describe Wukong::Hadoop::HadoopInvocation do
       d.should_receive(:remove_output_path!)
       d.should_receive(:execute_command!)
       d.run!
+    end
+  end
+
+  context "handle files, jars, and archives" do
+    it "does not include any files, jars, or archives when no files were passed" do
+      map_reduce.hadoop_commandline.should_not match(%r{-(files|archives|libjars)})
+    end
+    it "should include files when asked" do
+      many_files.hadoop_commandline.should match(%r{-files\s+'/file/1,/file/2'})
+    end
+    it "should include jars when asked" do
+      many_files.hadoop_commandline.should match(%r{-libjars\s+'/jar/1,/jar/2'})
+    end
+    it "should include archives when asked" do
+      many_files.hadoop_commandline.should match(%r{-archives\s+'/archive/1,/archive/2'})
+    end
+    it "should include files when passed files as arguments" do
+      driver(examples_dir('tokenizer.rb'), examples_dir('counter.rb'), input: '/tmp/input1,/tmp/input2', output: '/tmp/output').hadoop_commandline.should match(%r{-files.+tokenizer\.rb,.*counter\.rb})
     end
     
   end

@@ -146,8 +146,24 @@ module Wukong
       #
       # http://hadoop.apache.org/docs/r0.20.2/streaming.html#Package+Files+With+Job+Submissions
       def hadoop_files
-        args.find_all { |arg| arg.to_s =~ /\.rb$/ }.map do |arg|
-          "-file         '#{arg}'" 
+        args.find_all { |arg| arg.to_s =~ /\.rb$/ }.each do |arg|
+          settings[:files] << arg
+        end
+
+        [].tap do |files_options|
+          {
+            :files    => '-files        ',
+            :jars     => '-libjars      ',
+            :archives => '-archives     '
+          }.each_pair do |file_type_name, file_option_name|
+            unless settings[file_type_name].nil? || settings[file_type_name].empty?
+              files = settings[file_type_name].map do |file_name_or_glob|
+                # Don't glob on the HDFS
+                file_type_name == :archives ? file_name_or_glob : [Dir[file_name_or_glob], file_name_or_glob]
+              end.flatten.compact.join(',')
+              files_options << "#{file_option_name}'#{files}'"
+            end
+          end
         end
       end
 

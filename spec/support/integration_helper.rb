@@ -6,16 +6,16 @@ module Wukong
         @root ||= Pathname.new(File.expand_path('../../..', __FILE__))
       end
 
-      def lib_dir
-        root.join('lib')
+      def lib_dir *args
+        root.join('lib', *args)
       end
 
-      def bin_dir
-        root.join('bin')
+      def bin_dir *args
+        root.join('bin', *args)
       end
       
-      def examples_dir
-        root.join('examples')
+      def examples_dir *args
+        root.join('examples', *args)
       end
 
       def integration_env
@@ -30,7 +30,7 @@ module Wukong
       end
 
       def example_script *args
-        examples_dir.join(*args)
+        examples_dir(*args)
       end
 
     end
