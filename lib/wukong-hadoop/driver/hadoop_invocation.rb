@@ -35,11 +35,11 @@ module Wukong
          hadoop_jobconf_options,
          "-D mapred.job.name='#{job_name}'",
          hadoop_other_args,
+         hadoop_files,
          "-mapper       '#{mapper_commandline}'",
          "-reducer      '#{reducer_commandline}'",
          "-input        '#{input_paths}'",
          "-output       '#{output_path}'",
-         hadoop_files,
          io_formats,
          hadoop_recycle_env,
         ].flatten.compact.join(" \t\\\n  ")
