@@ -160,7 +160,7 @@ module Wukong
               files = settings[file_type_name].map do |file_name_or_glob|
                 # Don't glob on the HDFS
                 file_type_name == :archives ? file_name_or_glob : [Dir[file_name_or_glob], file_name_or_glob]
-              end.flatten.compact.join(',')
+              end.flatten.compact.uniq.join(',')
               files_options << "#{file_option_name}'#{files}'"
             end
           end
