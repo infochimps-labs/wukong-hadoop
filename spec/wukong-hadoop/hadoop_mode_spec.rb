@@ -67,7 +67,7 @@ describe Wukong::Hadoop::HadoopInvocation do
   end
 
   context "removing existing output paths" do
-    before { Log.stub!(:info) }
+    before { Wukong::Log.level = Log4r::OFF }
     it "will not remove the output path by default" do
       map_reduce.should_not_receive(:remove_output_path!)
       map_reduce.should_receive(:execute_command!)
@@ -103,7 +103,6 @@ describe Wukong::Hadoop::HadoopInvocation do
     it "should include files when passed files as arguments" do
       driver(examples_dir('tokenizer.rb'), examples_dir('counter.rb'), input: '/tmp/input1,/tmp/input2', output: '/tmp/output').hadoop_commandline.should match(%r{-files.+tokenizer\.rb,.*counter\.rb})
     end
-    
   end
   
 end
