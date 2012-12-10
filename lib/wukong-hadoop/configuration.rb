@@ -16,7 +16,7 @@ module Wukong
       settings.define :job_name,                wukong_hadoop: true, jobconf: true, description: 'mapred.job.name'
       settings.define :key_field_separator,     wukong_hadoop: true, jobconf: true, description: 'map.output.key.field.separator'
       settings.define :map_speculative,         wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
-      settings.define :reduce_speculative,      wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
+      settings.define :reduce_speculative,      wukong_hadoop: true, jobconf: true, description: 'mapred.reduce.tasks.speculative.execution'
       settings.define :map_tasks,               wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks'
       settings.define :max_maps_per_cluster,    wukong_hadoop: true, jobconf: true, description: 'mapred.max.maps.per.cluster'
       settings.define :max_maps_per_node,       wukong_hadoop: true, jobconf: true, description: 'mapred.max.maps.per.node'
