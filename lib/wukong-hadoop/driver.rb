@@ -24,6 +24,7 @@ module Wukong
       include ReduceLogic
       include HadoopInvocation
       include LocalInvocation
+      include Logging
 
       # The settings used by this driver.
       #
@@ -55,12 +56,12 @@ module Wukong
       # Run this driver.
       def run!
         if mode == :local
-          # Log.info "Launching local!"
+          # log.info "Launching local!"
           execute_command!(local_commandline)
         else
           ensure_input_and_output!
           remove_output_path! if settings[:rm] || settings[:overwrite]
-          Log.info "Launching Hadoop!"
+          log.info "Launching Hadoop!"
           execute_command!(hadoop_commandline)
         end
       end
@@ -177,7 +178,7 @@ module Wukong
       def execute_command!(*args)
         command = args.flatten.reject(&:blank?).join(" \\\n    ")
         if settings[:dry_run]
-          Log.info("Dry run:")
+          log.info("Dry run:")
           puts command
         else
           puts `#{command}`

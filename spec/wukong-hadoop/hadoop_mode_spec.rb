@@ -67,7 +67,7 @@ describe Wukong::Hadoop::HadoopInvocation do
   end
 
   context "removing existing output paths" do
-    before { Wukong::Log.level = Log4r::OFF }
+    
     it "will not remove the output path by default" do
       map_reduce.should_not_receive(:remove_output_path!)
       map_reduce.should_receive(:execute_command!)

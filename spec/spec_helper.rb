@@ -6,6 +6,7 @@ require 'wukong/spec_helpers'
 RSpec.configure do |config|
 
   config.before(:each) do
+    Wukong::Log.level = Log4r::OFF
     @orig_reg = Wukong.registry.show
   end
 

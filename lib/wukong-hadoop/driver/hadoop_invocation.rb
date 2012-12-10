@@ -17,7 +17,7 @@ module Wukong
       # is also given.
       def remove_output_path!
         cmd = %Q{#{hadoop_runner} fs -rmr '#{output_path}'}
-        Log.info "Removing output file #{output_path}: #{cmd}"
+        log.info "Removing output file #{output_path}: #{cmd}"
         puts `#{cmd}` unless settings[:dry_run]
       end
 
