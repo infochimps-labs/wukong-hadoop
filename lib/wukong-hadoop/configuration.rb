@@ -16,6 +16,7 @@ module Wukong
       settings.define :job_name,                wukong_hadoop: true, jobconf: true, description: 'mapred.job.name'
       settings.define :key_field_separator,     wukong_hadoop: true, jobconf: true, description: 'map.output.key.field.separator'
       settings.define :map_speculative,         wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
+      settings.define :reduce_speculative,      wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
       settings.define :map_tasks,               wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks'
       settings.define :max_maps_per_cluster,    wukong_hadoop: true, jobconf: true, description: 'mapred.max.maps.per.cluster'
       settings.define :max_maps_per_node,       wukong_hadoop: true, jobconf: true, description: 'mapred.max.maps.per.node'
@@ -43,9 +44,6 @@ module Wukong
       settings.define :files,                   wukong_hadoop: true,                description: "Comma-separated list of files (or globs) to be copied to the MapReduce cluster (-files).", :type => Array, :default => []
       settings.define :jars,                    wukong_hadoop: true,                description: "Comma-separated list of jars (or globs) to include on the Hadoop CLASSPATH (-libjars).", :type => Array, :default => []
       settings.define :archives,                wukong_hadoop: true,                description: "Comma-separated list of archives to be unarchived on each worker (-archives).", :type => Array, :default => []
-      settings.define :map_speculate,           wukong_hadoop: true, jobconf: true, description: 'mapred.map.tasks.speculative.execution'
-      settings.define :reduce_speculate,        wukong_hadoop: true, jobconf: true, description: 'mapred.reduce.tasks.speculative.execution'
-      
 
       # Options given on the command-line
       settings.define :mode,           description: "Run in either 'hadoop' or 'local' mode",                                        wukong_hadoop: true, :default => 'hadoop'
