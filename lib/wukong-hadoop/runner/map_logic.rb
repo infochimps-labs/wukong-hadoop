@@ -60,6 +60,7 @@ module Wukong
       #
       # @return [true, false]
       def mapper_needs_run_arg?
+        return false if settings[:map_command]
         return false if mapper_arg.to_s == mapper_name.to_s
         return false if File.basename(mapper_arg.to_s, '.rb') == mapper_name.to_s
         true

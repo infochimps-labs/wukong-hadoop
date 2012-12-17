@@ -4,8 +4,18 @@ module Wukong
     # Configure the given settings object for use with Wukong::Hadoop.
     #
     # @param [Configliere::Param] settings the settings to configure
-    # @return [Configliere::Param the configured settings
     def self.configure settings
+    end
+
+    # Configure the given settings object for use with specific
+    # programs.
+    #
+    # Will only add settings for the `wu-hadoop` program.
+    #
+    # @param [Configliere::Param] settings the settings to configure
+    def self.configure_for_program settings, name
+      return unless name == 'wu-hadoop'
+      
       # Hadoop Options
       settings.define :hadoop_home,             wukong_hadoop: true,                description: 'Path to hadoop installation. HADOOP_HOME/bin/hadoop is used to run hadoop.', env_var: 'HADOOP_HOME', default: '/usr/lib/hadoop'
       settings.define :hadoop_runner,           wukong_hadoop: true,                description: 'Path to hadoop executable. Use this for non-standard hadoop installations.'
@@ -50,7 +60,7 @@ module Wukong
       settings.define :map_command,    description: "Shell command to run as mapper, in place of a constructed wu-local command",    wukong_hadoop: true
       settings.define :reduce_command, description: "Shell command to run as reducer, in place of a constructed wu-local command",   wukong_hadoop: true
       settings.define :sort_command,   description: "Shell command to run as sorter (only in `local' mode)",             wukong_hadoop: true, :default => 'sort'
-      settings.define :command_prefix, description: "Prefex to insert before all Wukong commands",                       wukong_hadoop: true
+      settings.define :command_prefix, description: "Prefix to insert before all Wukong commands",                       wukong_hadoop: true
       settings.define :mapper,         description: "Name of processor to use as a mapper",                              wukong_hadoop: true
       settings.define :reducer,        description: "Name of processor to use as a reducer",                             wukong_hadoop: true
       settings.define :gemfile,        description: "Specify an alternative Gemfile to execute this wukong script with", wukong_hadoop: true 
@@ -58,80 +68,14 @@ module Wukong
       settings.define :rm,             description: "Recursively remove the destination directory.",                     wukong_hadoop: true, :type => :boolean, :default => false
       settings.define :input,          description: "Comma-separated list of input paths",                               wukong_hadoop: true
       settings.define :output,         description: "Output path.",                                                      wukong_hadoop: true
-
-      settings.use(:commandline)
-
-      def settings.usage()
-        "usage: #{File.basename($0)} PROCESSOR|FLOW [PROCESSOR|FLOW] [ --param=value | -p value | --param | -p]"
-      end
-
-      settings.description = <<EOF
-wu-hadoop is a tool to model and launch Wukong processors as
-map/reduce workflows within the Hadoop framework.
-
-Use wu-hadoop with existing processors in `local' mode to test the
-logic of your job, reading from the specified --input and printing to
-STDOUT:
-
-  $ wu-hadoop examples/word_count.rb --mode=local --input=examples/sonnet_18.txt
-  a	2
-  all	1
-  and	2
-  ...
-
-where it is assumed that your mapper is called 'mapper' and your
-reducer 'reducer'.  You can also cat in data:
-
-  $ cat examples/sonnet_18.txt | wu-hadoop examples/word_count.rb --mode=local
-
-Or pass options directly:
-
-  $ wu-hadoop examples/word_count.rb  --mode=local --input=examples/sonnet_18.txt --fold_case --min_length=3
-  all	1
-  and	5
-  art	1
-  brag	1
-  ...
-
-Or define both processors in separate files:
-
-  $ wu-hadoop examples/tokenizer.rb examples/counter.rb --mode=local --input=examples/sonnet_18.txt
-
-Or by name:
-
-  $ wu-hadoop examples/processors.rb --mode=local --input=examples/sonnet_18.txt --mapper=tokenizer --reducer=counter
-
-Or just by command:
-
-$ wu-hadoop processors.rb --mapper=tokenizer --reduce_command='uniq -c' ...
-$ wu-hadoop processors.rb --map_command='cut -f3' --reducer=counter ...
-$ wu-hadoop --map_command='cut -f3' --reduce_command='uniq -c' ...
-
-If you don't specify a --reducer explicitly, and you didn't give two
-separate arguments, and no processor named :reducer exists in the
-environment, then we assume you are launching a map-only job and
-'mapred.tasktracker.reduce.tasks.maximum' will correspondingly be set
-to 0:
-
-  $ wu-hadoop examples/tokenizer.rb --mode=local --input=examples/sonnet_18.txt
-  Shall
-  I
-  compare
-  thee
-  ...
-
-You can achieve this directly with the --reduce_tasks=0 option.
-
-Many other Hadoop options have been wrapped with similarly friendly
-names below.  These are ignored when running in `local' mode.
-
-Some options (like `--sort_command') only make sense in `local' mode.
-These are ignored in `hadoop' mode.
-EOF
-      settings
     end
 
-    # All Hadoop configuration for Wukong lives within this object.
-    Configuration = configure(Configliere::Param.new) unless defined? Configuration
+    # Boots the Wukong::Hadoop plugin.
+    #
+    # @param [Configliere::Param] settings the settings to boot from
+    # @param [String] root the root directory to boot in
+    def self.boot settings, root
+    end
+    
   end
 end

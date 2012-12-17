@@ -1,14 +1,4 @@
 #!/usr/bin/env ruby
 
 require 'wukong-hadoop'
-settings = Wukong::Hadoop::Configuration
-require 'wukong/boot'
-Wukong.boot!(settings)
-
-settings[:command_prefix] = 'bundle exec' if Wukong.in_deploy_pack?
-
-if settings.rest.empty?
-  settings.dump_help
-  exit(1)
-end
-Wukong::Hadoop::Driver.run(settings, *settings.rest)
+Wukong::Hadoop::Runner.new.run

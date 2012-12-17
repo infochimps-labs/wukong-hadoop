@@ -6,11 +6,6 @@ module Wukong
     # streaming}[http://hadoop.apache.org/docs/r0.15.2/streaming.html].
     module HadoopInvocation
 
-      # Raise an error unless we have input and output.
-      def ensure_input_and_output!
-        raise Error.new("Explicit --input and --output paths are required to run a job in Hadoop mode.") if input_paths.nil? || input_paths.empty? || output_path.nil? || output_path.empty?
-      end
-
       # Remove the output path.
       #
       # Will not actually do anything if the <tt>--dry_run</tt> option

@@ -12,10 +12,11 @@ module Wukong
   # lets you execute Ruby files containing Wukong processors as well
   # as built-in Wukong widgets.
   module Hadoop
+    include Plugin
   end
 end
 
 
 require 'wukong-hadoop/configuration'
-require 'wukong-hadoop/driver'
+require 'wukong-hadoop/runner'
 require 'wukong-hadoop/extensions'
