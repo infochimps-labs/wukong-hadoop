@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
 
 require 'wukong-hadoop'
-Wukong::Hadoop::Runner.new.run
+Wukong::Hadoop::HadoopRunner.run

@@ -2,15 +2,15 @@ require 'spec_helper'
 
 describe Wukong::Hadoop::HadoopInvocation do
   
-  let(:map_only)   { runner('regexp',          input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
-  let(:map_reduce) { runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
-  let(:complex)    { runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', map_tasks: '100', job_name: 'testy', java_opts: ['-D foo.bar=3 -D baz.booz=hello', '-D hi.there=bye'], :reduce_tasks => 20) }
-  let(:custom_io)  { runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', input_format: 'com.example.InputFormat', output_format: 'com.example.OutputFormat') }
-  let(:many_files) { runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', files: %w[/file/1 /file/2], archives: %w[/archive/1 /archive/2], jars: %w[/jar/1 /jar/2])}
+  let(:map_only)   { hadoop_runner('regexp',          input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
+  let(:map_reduce) { hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') }
+  let(:complex)    { hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', map_tasks: '100', job_name: 'testy', java_opts: ['-D foo.bar=3 -D baz.booz=hello', '-D hi.there=bye'], :reduce_tasks => 20) }
+  let(:custom_io)  { hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', input_format: 'com.example.InputFormat', output_format: 'com.example.OutputFormat') }
+  let(:many_files) { hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', files: %w[/file/1 /file/2], archives: %w[/archive/1 /archive/2], jars: %w[/jar/1 /jar/2])}
 
   context "defining input paths" do
     it "raises an error unless given an --input option" do
-      lambda { runner('regexp', output: '/tmp/output').run! }.should raise_error(Wukong::Error, /--input.*required/)
+      lambda { hadoop_runner('regexp', output: '/tmp/output') }.should raise_error(Wukong::Error, /--input.*required/)
     end
     it "sets its input paths correctly" do
       map_reduce.hadoop_commandline.should match(%r{-input\s+'/tmp/input1,/tmp/input2'})
@@ -22,7 +22,7 @@ describe Wukong::Hadoop::HadoopInvocation do
   
   context "defining its output path" do
     it "raises an error unless given an --output option" do
-      lambda { runner('regexp', input: '/tmp/output').run! }.should raise_error(Wukong::Error, /--output.*required/)
+      lambda { hadoop_runner('regexp', input: '/tmp/output') }.should raise_error(Wukong::Error, /--output.*required/)
     end
     it "sets its output path correctly" do
       map_reduce.hadoop_commandline.should match(%r{-output\s+'/tmp/output'})
@@ -69,21 +69,13 @@ describe Wukong::Hadoop::HadoopInvocation do
   context "removing existing output paths" do
     
     it "will not remove the output path by default" do
-      map_reduce.should_not_receive(:remove_output_path!)
-      map_reduce.should_receive(:execute_command!)
-      map_reduce.run!
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') { should_not_receive(:remove_output_path!) }
     end
     it "will remove the output path when given the --rm option" do
-      d = runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true)
-      d.should_receive(:remove_output_path!)
-      d.should_receive(:execute_command!)
-      d.run!
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true) { should_receive(:remove_output_path!) }
     end
     it "will not remove the output path when given the --rm option AND the --dry_run option" do
-      d = runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true, dry_run: true)
-      d.should_receive(:remove_output_path!)
-      d.should_receive(:execute_command!)
-      d.run!
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true, dry_run: true) { should_receive(:remove_output_path!) }
     end
   end
 
@@ -101,7 +93,7 @@ describe Wukong::Hadoop::HadoopInvocation do
       many_files.hadoop_commandline.should match(%r{-archives\s+'/archive/1,/archive/2'})
     end
     it "should include files when passed files as arguments" do
-      runner(examples_dir('tokenizer.rb'), examples_dir('counter.rb'), input: '/tmp/input1,/tmp/input2', output: '/tmp/output').hadoop_commandline.should match(%r{-files.+tokenizer\.rb,.*counter\.rb})
+      hadoop_runner(examples_dir('tokenizer.rb'), examples_dir('counter.rb'), input: '/tmp/input1,/tmp/input2', output: '/tmp/output').hadoop_commandline.should match(%r{-files.+tokenizer\.rb,.*counter\.rb})
     end
   end
   

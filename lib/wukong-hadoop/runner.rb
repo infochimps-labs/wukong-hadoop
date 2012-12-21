@@ -4,7 +4,6 @@ require_relative("runner/map_logic")
 require_relative("runner/reduce_logic")
 require_relative("runner/local_invocation")
 require_relative("runner/hadoop_invocation")
-
 module Wukong
   module Hadoop
 
@@ -17,14 +16,13 @@ module Wukong
     # map/reduce job.  It will also decide whether to run that job in
     # local or Hadoop mode.  These decisions result in a command which
     # it will ultimately execute.
-    class Runner < Wukong::Runner
+    class HadoopRunner < Wukong::Runner
 
-      def usage
-        super() + " PROCESSOR|FLOW [PROCESSOR|FLOW]"
-      end
+      program 'wu-hadoop'
+
+      usage "PROCESSOR|FLOW [PROCESSOR|FLOW]"
       
-      def description
-        <<EOF
+      description <<EOF
 wu-hadoop is a tool to model and launch Wukong processors as
 map/reduce workflows within the Hadoop framework.
 
@@ -87,14 +85,13 @@ names below.  These are ignored when running in `local' mode.
 Some options (like `--sort_command') only make sense in `local' mode.
 These are ignored in `hadoop' mode.
 EOF
-      end
 
+      include Logging
       include InputsAndOutputs
       include MapLogic
       include ReduceLogic
       include HadoopInvocation
       include LocalInvocation
-      include Logging
 
       # Parses the +args+ for this runner.
       #
@@ -103,17 +100,18 @@ EOF
       #
       # Will exit if no input or output arguments are provided and we
       # are in Hadoop mode.
-      def evaluate_args
+      def validate
         raise Error.new("Cannot provide more than two arguments") if args.length > 2
-        if mode == :hadoop && input_paths.nil? || input_paths.empty? || output_path.nil? || output_path.empty?
+        if mode == :hadoop && (input_paths.nil? || input_paths.empty? || output_path.nil? || output_path.empty?)
           raise Error.new("Explicit --input and --output paths are required to run a job in Hadoop mode.")
         end
+        true
       end
-      
-      # Execute the "driver" for this runner.
-      def run_driver
+
+      # Run this command.
+      def run
         if mode == :local
-          # log.info "Launching local!"
+          log.info "Launching local!"
           execute_command!(local_commandline)
         else
           remove_output_path! if settings[:rm] || settings[:overwrite]

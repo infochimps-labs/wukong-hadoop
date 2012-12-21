@@ -1,12 +1,9 @@
 require 'wukong-hadoop'
-require_relative('support/integration_helper')
-require_relative('support/runner_helper')
 require 'wukong/spec_helpers'
 
 RSpec.configure do |config|
 
   config.before(:each) do
-    ARGV.replace([])
     Wukong::Log.level = Log4r::OFF
     @orig_reg = Wukong.registry.show
   end
@@ -17,7 +14,16 @@ RSpec.configure do |config|
   end
     
   include Wukong::SpecHelpers
-  include Wukong::Hadoop::IntegrationHelper
-  include Wukong::Hadoop::RunnerHelper
+
+  def root
+    @root ||= Pathname.new(File.expand_path('../..', __FILE__))
+  end
+
+  def hadoop_runner *args, &block
+    runner(Wukong::Hadoop::HadoopRunner, *args) do
+      stub!(:execute_command!)
+      instance_eval(&block) if block_given?
+    end
+  end
 end
 

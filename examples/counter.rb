@@ -11,7 +11,7 @@ Wukong.processor(:counter, Wukong::Processor::Accumulator) do
   end
 
   def finalize
-    yield [key, count].join("\t")
+    yield [key, count]
   end
   
 end
