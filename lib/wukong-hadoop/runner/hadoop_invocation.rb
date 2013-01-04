@@ -115,7 +115,7 @@ module Wukong
                             :reduce_tasks,             :respect_exit_status,
                             :reuse_jvms,               :timeout,
                             :max_tracker_failures,     :max_map_attempts,
-                            :max_reduce_attempts
+                            :max_reduce_attempts,      :reduce_speculative
                            ].map do |opt|
           defn = settings.definition_of(opt, :description)
           val  = settings[opt]

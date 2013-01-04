@@ -18,7 +18,7 @@ module Wukong
         return settings[:reduce_command] if     explicit_reduce_command?
         [command_prefix, 'wu-local', reducer_arg].tap do |cmd|
           cmd << "--run=#{reducer_name}" if reducer_needs_run_arg?
-          cmd << params_to_pass
+          cmd << non_wukong_hadoop_params_string
         end.compact.map(&:to_s).reject(&:empty?).join(' ')
       end
 

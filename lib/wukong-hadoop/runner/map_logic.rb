@@ -16,7 +16,7 @@ module Wukong
         return settings[:map_command] if explicit_map_command?
         [command_prefix, 'wu-local',  mapper_arg].tap do |cmd|
           cmd << "--run=#{mapper_name}" if mapper_needs_run_arg?
-          cmd << params_to_pass
+          cmd << non_wukong_hadoop_params_string
         end.compact.map(&:to_s).reject(&:empty?).join(' ')
       end
 

@@ -1,5 +1,5 @@
 require 'shellwords'
-require_relative("runner/inputs_and_outputs")
+require_relative("runner/overwritables")
 require_relative("runner/map_logic")
 require_relative("runner/reduce_logic")
 require_relative("runner/local_invocation")
@@ -17,8 +17,6 @@ module Wukong
     # local or Hadoop mode.  These decisions result in a command which
     # it will ultimately execute.
     class HadoopRunner < Wukong::Runner
-
-      program 'wu-hadoop'
 
       usage "PROCESSOR|FLOW [PROCESSOR|FLOW]"
       
@@ -87,13 +85,13 @@ These are ignored in `hadoop' mode.
 EOF
 
       include Logging
-      include InputsAndOutputs
+      include Overwritables
       include MapLogic
       include ReduceLogic
       include HadoopInvocation
       include LocalInvocation
 
-      # Parses the +args+ for this runner.
+      # Parses the `args` for this runner.
       #
       # Will exit if more than two arguments (mapper and reducer) are
       # passed.
@@ -142,7 +140,7 @@ EOF
         args.size == 2
       end
 
-      # Is there a processor registered with the given +name+?
+      # Is there a processor registered with the given `name`?
       #
       # @param [#to_s] name
       # @return [true, false]
@@ -150,7 +148,7 @@ EOF
         Wukong.registry.registered?(name.to_s.to_sym)
       end
 
-      # Return the guessed name of a processor at the given +path+.
+      # Return the guessed name of a processor at the given `path`.
       #
       # @param [String] path
       # @return [String]
@@ -158,7 +156,7 @@ EOF
         File.basename(path, '.rb')
       end
 
-      # Does the given +path+ contain a processor named after itself?
+      # Does the given `path` contain a processor named after itself?
       #
       # @param [String] path
       # @return [true, false]
@@ -183,9 +181,12 @@ EOF
       # will be passed unmodified.
       #
       # @return [String]
-      def params_to_pass
-        s = (loaded_deploy_pack? ? Deploy.pre_deploy_settings : settings)
-        s.reject{ |param, val| s.definition_of(param, :wukong_hadoop) }.map{ |param,val| "--#{param}=#{Shellwords.escape(val.to_s)}" }.join(" ")
+      def non_wukong_hadoop_params_string
+        params_to_pass.reject do |param, val|
+          params_to_pass.definition_of(param, :wukong_hadoop)
+        end.map do |param,val|
+          "--#{param}=#{Shellwords.escape(val.to_s)}"
+        end.join(" ")
       end
 
       # Execute a command composed of the given parts.
