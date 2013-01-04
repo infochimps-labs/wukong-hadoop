@@ -91,13 +91,12 @@ EOF
       include HadoopInvocation
       include LocalInvocation
 
-      # Parses the `args` for this runner.
+      # Validate that no more than two arguments were given and that
+      # explicit input & output arguments were given if we're in
+      # Hadoop mode.
       #
-      # Will exit if more than two arguments (mapper and reducer) are
-      # passed.
-      #
-      # Will exit if no input or output arguments are provided and we
-      # are in Hadoop mode.
+      # @raise [Wukong::Error] if validations fail
+      # @return [true]
       def validate
         raise Error.new("Cannot provide more than two arguments") if args.length > 2
         if mode == :hadoop && (input_paths.nil? || input_paths.empty? || output_path.nil? || output_path.empty?)
