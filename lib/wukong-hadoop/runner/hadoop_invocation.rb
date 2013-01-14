@@ -175,7 +175,7 @@ module Wukong
       # :nodoc:
       def hadoop_recycle_env
         use_alternative_gemfile if settings[:gemfile]
-        %w[BUNDLE_GEMFILE].map{ |var| %Q{-cmdenv       '#{var}=#{ENV[var]}'} if ENV[var] }.compact
+        %w[BUNDLE_GEMFILE LANG].map{ |var| %Q{-cmdenv       '#{var}=#{ENV[var]}'} if ENV[var] }.compact
       end
 
       # :nodoc:
