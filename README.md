@@ -1,7 +1,7 @@
 # Wukong-Hadoop
 
 The Hadoop plugin for Wukong lets you run <a
-href="http://github.com/infochimps-labs/wukong">Wukong processors</a>
+href="http://github.com/infochimps-labs/wukong/tree/3.0.0">Wukong processors</a>
 through <a href="http://hadoop.apache.org/">Hadoop's</a> command-line
 <a
 href="http://hadoop.apache.org/docs/r0.15.2/streaming.html">streaming
