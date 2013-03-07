@@ -1,6 +1,5 @@
 module Wukong
   module Hadoop
-    # The current version of Wukong-Hadoop.
-    VERSION = '0.1.0'
+    VERSION = '0.1.1'
   end
 end
