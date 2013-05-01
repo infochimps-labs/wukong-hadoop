@@ -10,10 +10,8 @@ module Wukong
       #
       # Will not actually do anything if the <tt>--dry_run</tt> option
       # is also given.
-      def remove_output_path!
-        cmd = %Q{#{hadoop_runner} fs -rmr '#{output_path}'}
-        log.info "Removing output file #{output_path}: #{cmd}"
-        puts `#{cmd}` unless settings[:dry_run]
+      def remove_output_path
+        execute_command("#{hadoop_runner} fs -rmr '#{output_path}'")
       end
 
       # Return the Hadoop command used to launch this job in a Hadoop
