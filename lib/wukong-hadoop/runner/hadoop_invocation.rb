@@ -97,7 +97,6 @@ module Wukong
         settings[:respect_exit_status] = 'false' if     (settings[:ignore_exit_status] == true)
         # If no reducer and no reduce_command, then skip the reduce phase
         settings[:reduce_tasks]      ||= 0       unless reduce?
-        # Fields hadoop should use to distribute records to reducers
         jobconf_options += [
                             :io_sort_mb,               :io_sort_record_percent,
                             :map_speculative,          :map_tasks,
