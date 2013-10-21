@@ -98,9 +98,6 @@ module Wukong
         # If no reducer and no reduce_command, then skip the reduce phase
         settings[:reduce_tasks]      ||= 0       unless reduce?
         # Fields hadoop should use to distribute records to reducers
-        unless settings[:partition_fields].blank?
-          jobconf_options += [jobconf(:partition_fields), jobconf(:output_field_separator)]
-        end
         jobconf_options += [
                             :io_sort_mb,               :io_sort_record_percent,
                             :map_speculative,          :map_tasks,
