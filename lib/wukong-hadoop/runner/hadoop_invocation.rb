@@ -24,7 +24,7 @@ module Wukong
       def hadoop_commandline
         [
          hadoop_runner,
-         "jar #{settings[:hadoop_home]}/contrib/streaming/hadoop-*streaming*.jar",
+         "jar #{hadoop_streaming_jar}",
          hadoop_jobconf_options,
          "-D mapred.job.name='#{job_name}'",
          hadoop_files,
@@ -82,7 +82,17 @@ module Wukong
       #
       # @return [String]
       def hadoop_runner
-        settings[:hadoop_runner] || File.join(settings[:hadoop_home], 'bin/hadoop')
+        settings[:hadoop_runner] || 'hadoop'
+      end
+
+      # The path (glob) to the Hadoop streaming jar.
+      #
+      # Respects the value of <tt>--hadoop_streaming_jar</tt> if
+      # given.  Otherwise uses the default CDH4 location.
+      #
+      # @return [String]
+      def hadoop_streaming_jar
+        settings[:hadoop_streaming_jar] || '/usr/lib/hadoop-0.20-mapreduce/contrib/streaming/hadoop-streaming-2.0.0-mr1-cdh*.jar'
       end
 
       # Return an array of jobconf (-D) options that will be passed to Hadoop.
