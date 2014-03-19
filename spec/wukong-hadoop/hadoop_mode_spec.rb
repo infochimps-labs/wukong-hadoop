@@ -69,13 +69,13 @@ describe Wukong::Hadoop::HadoopInvocation do
   context "removing existing output paths" do
     
     it "will not remove the output path by default" do
-      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') { should_not_receive(:remove_output_path!) }
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output') { should_not_receive(:remove_output_path) }
     end
     it "will remove the output path when given the --rm option" do
-      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true) { should_receive(:remove_output_path!) }
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true) { should_receive(:remove_output_path) }
     end
     it "will not remove the output path when given the --rm option AND the --dry_run option" do
-      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true, dry_run: true) { should_receive(:remove_output_path!) }
+      hadoop_runner('regexp', 'count', input: '/tmp/input1,/tmp/input2', output: '/tmp/output', rm: true, dry_run: true) { should_receive(:remove_output_path) }
     end
   end
 
