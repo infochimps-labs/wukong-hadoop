@@ -25,5 +25,5 @@ EOF
   gem.test_files    = gem.files.grep(/^spec/)
   gem.require_paths = ['lib']
 
-  gem.add_dependency('wukong', '3.0.1')
+  gem.add_dependency('wukong', '4.0.0')
 end
