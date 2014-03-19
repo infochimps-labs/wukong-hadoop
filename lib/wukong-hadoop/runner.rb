@@ -111,7 +111,7 @@ EOF
           log.info "Launching local!"
           execute_command!(local_commandline)
         else
-          remove_output_path! if settings[:rm] || settings[:overwrite]
+          remove_output_path if settings[:rm] || settings[:overwrite]
           hadoop_commandline
           log.info "Launching Hadoop!"
           execute_command!(hadoop_commandline)
@@ -186,23 +186,6 @@ EOF
         end.map do |param,val|
           "--#{param}=#{Shellwords.escape(val.to_s)}"
         end.join(" ")
-      end
-
-      # Execute a command composed of the given parts.
-      #
-      # Will print the command instead of the <tt>--dry_run</tt>
-      # option was given.
-      #
-      # @param [Array<String>] argv
-      def execute_command!(*argv)
-        command = argv.flatten.reject(&:blank?).join(" \\\n    ")
-        if settings[:dry_run]
-          log.info("Dry run:")
-          puts command
-        else
-          puts `#{command}`
-          raise Error.new("Command failed!") unless $?.success?
-        end
       end
       
     end

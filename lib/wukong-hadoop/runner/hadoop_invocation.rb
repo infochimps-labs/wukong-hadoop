@@ -10,10 +10,8 @@ module Wukong
       #
       # Will not actually do anything if the <tt>--dry_run</tt> option
       # is also given.
-      def remove_output_path!
-        cmd = %Q{#{hadoop_runner} fs -rmr '#{output_path}'}
-        log.info "Removing output file #{output_path}: #{cmd}"
-        puts `#{cmd}` unless settings[:dry_run]
+      def remove_output_path
+        execute_command("#{hadoop_runner} fs -rmr '#{output_path}'")
       end
 
       # Return the Hadoop command used to launch this job in a Hadoop
@@ -26,11 +24,11 @@ module Wukong
       def hadoop_commandline
         [
          hadoop_runner,
-         "jar #{settings[:hadoop_home]}/contrib/streaming/hadoop-*streaming*.jar",
+         "jar #{hadoop_streaming_jar}",
          hadoop_jobconf_options,
          "-D mapred.job.name='#{job_name}'",
-         hadoop_other_args,
          hadoop_files,
+         hadoop_other_args,
          "-mapper       '#{mapper_commandline}'",
          "-reducer      '#{reducer_commandline}'",
          "-input        '#{input_paths}'",
@@ -84,7 +82,17 @@ module Wukong
       #
       # @return [String]
       def hadoop_runner
-        settings[:hadoop_runner] || File.join(settings[:hadoop_home], 'bin/hadoop')
+        settings[:hadoop_runner] || 'hadoop'
+      end
+
+      # The path (glob) to the Hadoop streaming jar.
+      #
+      # Respects the value of <tt>--hadoop_streaming_jar</tt> if
+      # given.  Otherwise uses the default CDH4 location.
+      #
+      # @return [String]
+      def hadoop_streaming_jar
+        settings[:hadoop_streaming_jar] || '/usr/lib/hadoop-0.20-mapreduce/contrib/streaming/hadoop-streaming-2.0.0-mr1-cdh*.jar'
       end
 
       # Return an array of jobconf (-D) options that will be passed to Hadoop.
@@ -99,10 +107,6 @@ module Wukong
         settings[:respect_exit_status] = 'false' if     (settings[:ignore_exit_status] == true)
         # If no reducer and no reduce_command, then skip the reduce phase
         settings[:reduce_tasks]      ||= 0       unless reduce?
-        # Fields hadoop should use to distribute records to reducers
-        unless settings[:partition_fields].blank?
-          jobconf_options += [jobconf(:partition_fields), jobconf(:output_field_separator)]
-        end
         jobconf_options += [
                             :io_sort_mb,               :io_sort_record_percent,
                             :map_speculative,          :map_tasks,

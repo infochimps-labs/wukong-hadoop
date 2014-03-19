@@ -21,8 +21,8 @@ module Wukong
       return unless program_name == 'wu-hadoop'
       
       # Hadoop Options
-      settings.define :hadoop_home,             wukong_hadoop: true,                description: 'Path to hadoop installation. HADOOP_HOME/bin/hadoop is used to run hadoop.', env_var: 'HADOOP_HOME', default: '/usr/lib/hadoop'
       settings.define :hadoop_runner,           wukong_hadoop: true,                description: 'Path to hadoop executable. Use this for non-standard hadoop installations.'
+      settings.define :hadoop_streaming_jar,    wukong_hadoop: true,                description: 'Path to hadoop streaming jar.  Use this for non-standard hadoop installations.'
 
       # Translate simplified args to their hairy hadoop equivalents
       settings.define :io_sort_mb,              wukong_hadoop: true, jobconf: true, description: 'io.sort.mb'
