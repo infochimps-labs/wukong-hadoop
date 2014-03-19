@@ -4,7 +4,7 @@ describe Wukong::Hadoop::HadoopRunner do
 
   context "handling errors" do
     it "raises an error when it can't find a file" do
-      expect { hadoop_runner(examples_dir('processors.rb'), examples_dir('doesnt_exist.rb'), :input => 'foo', :output => 'bar') }.to raise_error(Wukong::Error, /no such file/)
+      expect { hadoop_runner(examples_dir('processors.rb'), examples_dir('doesnt_exist.rb'), :input => 'foo', :output => 'bar') }.to raise_error(Wukong::Error, /cannot load such file/)
     end
     
     it "raises an error in Hadoop mode when called without input and output paths" do
